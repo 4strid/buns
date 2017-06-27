@@ -23,19 +23,15 @@ const Bunny = Cute({
 });
 
 
-const Tomato = Cute({
-	draw: function (ctx) {
-		const sprite = document.getElementById('tomato');
-		ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
-					  0, 0, this.w, this.h);
-	}
-});
 
 function Foxes () {
 	const Fox = Cute({
+		params: {
+			speed: Number
+		},
 		methods: {
 			update: function (time) {
-				this.move(v(this).add(0, 5));
+				this.move(v(this).add(0, this.speed));
 			}
 		},
 		draw: function (ctx) {
@@ -58,14 +54,17 @@ function Foxes () {
 	}
 	this.update = update;
 
+	let base_speed = 3;
 	function spawn_fox () {
 		const start = Math.floor(Math.random()*10)*80+4;
-
+		base_speed += 0.01;
+		const fluctuation = Math.random()*1.5;
 		const fox = Fox({
 			x: start,
 			y: -80,
 			w: 72,
-			h: 80
+			h: 80,
+			speed: base_speed+fluctuation 
 		});
 		foxes.push(fox);
 	}
