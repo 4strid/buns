@@ -19,6 +19,31 @@ const Tomato = Cute({
 	}
 });
 
+const Fox = Cute({
+	draw: function (ctx) {
+		const sprite = document.getElementById('fox');
+		ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
+					  0, 0, this.w, this.h);
+	}
+});
+
+function spawn_fox () {
+start = Math.floor(Math.random()*10)*80+4;
+
+const fox = Fox({
+	x: start,
+	y: -80,
+	w: 72,
+	h: 80
+});
+}
+window.setInterval(spawn_fox, 500);
+
+window
+
+
+fox.move(x, y)
+
 const tomat = Tomato({
 	x: 0,
 	y: 0,
