@@ -337,6 +337,8 @@
 		//set (opts) {}
 	//});
 	
+	Cute.context = ctx;
+	
 	window.Cute = Cute;
 	window.l = function (x) {
 		console.log(x);
