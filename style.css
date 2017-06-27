@@ -7,5 +7,6 @@ html, body {
 }
 
 img {
+	position: absolute;
 	margin-left: 10000px;
 }

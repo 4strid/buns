@@ -1,21 +1,23 @@
-Cute.attach(document.getElementsByTagName('body')[0]);
+const WIDTH = 800;
+const HEIGHT = 800;
+
+Cute.attach(document.getElementsByTagName('body')[0], WIDTH, HEIGHT);
 Cute.context.mozImageSmoothingEnabled = false;
 Cute.context.webkitImageSmoothingEnabled = false;
 Cute.context.msImageSmoothingEnabled = false;
 Cute.context.imageSmoothingEnabled = false;
 
-const WIDTH = 800;
-const HEIGHT = 600;
-
 const Bunny = Cute({
 	draw: function (ctx) {
-		const sprite = document.getElementById('tomato');
+		const sprite = document.getElementById('bunnunu');
 		ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
 					  0, 0, this.w, this.h);
 	},
 	state: {
-		Ready () {
-
+		Ready: function () {
+			this.on('mousemove', function (evt) {
+				this.move(v(evt.canvasX - 40, evt.canvasY - 52));
+			});
 		}
 	}
 });
@@ -32,43 +34,63 @@ const Tomato = Cute({
 function Foxes () {
 	const Fox = Cute({
 		methods: {
-			release: function (speed) {
-				this.move(Math.random() * WIDTH, -50);
-				this.Run(speed);
-			},
-			update: function () {
-				this.move(v(this).add(0, speed));
-				if (this.y > HEIGHT + 50) {
-					this.pool();
-				}
+			update: function (time) {
+				this.move(v(this).add(0, 5));
 			}
 		},
 		draw: function (ctx) {
 			const sprite = document.getElementById('fox');
 			ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
 						  0, 0, this.w, this.h);
-		},
-		state: {
-			Run: function (speed) {
-			},
-			Pool: function () {
-				foxPool.push(this);
-			}
 		}
 	});
 
 	const foxes = [];
-	let base_speed = 10;
-	let num_foxes_unleashed = 0;
+
+	function update (time) {
+		for (f of foxes) {
+			f.update(time);
+			if (f.y > HEIGHT + 80) {
+				Cute.destroy(f);
+				foxes.splice(foxes.indexOf(f), 1);
+			}
+		}
+	}
+	this.update = update;
+
+	function spawn_fox () {
+		const start = Math.floor(Math.random()*10)*80+4;
+
+		const fox = Fox({
+			x: start,
+			y: -80,
+			w: 72,
+			h: 80
+		});
+		foxes.push(fox);
+	}
+	window.setInterval(spawn_fox, 200);
+
 }
 
 const bun = Bunny({
-	x: 10,
-	y: 10,
-	w: 30,
-	h: 39
+	x: 400,
+	y: 400,
+	w: 80,
+	h: 104 
 });
 
-const foxes = Foxes();
-
 bun.draw();
+
+const foxes = new Foxes();
+
+let last_time = null;
+function step(time) {
+	window.requestAnimationFrame(step);
+	const elapsed = time - last_time;
+	last_time = time;
+
+	foxes.update(time);
+}
+window.requestAnimationFrame(step);
+

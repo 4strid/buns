@@ -330,10 +330,10 @@
 	};
 
 
-	Cute.attach = function (parentEl) {
+	Cute.attach = function (parentEl, width, height) {
 		parentEl.appendChild(canvas);
-		canvas.width = parentEl.clientWidth;
-		canvas.height = parentEl.clientHeight;
+		canvas.width = width || parentEl.clientWidth;
+		canvas.height = height || parentEl.clientHeight;
 	};
 
 	//Object.assign(Cute, {
