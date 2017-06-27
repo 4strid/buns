@@ -297,7 +297,8 @@
 		emit: function (evtype, evt) {
 			dispatch.emitEvent(this.parent, evtype, evt);
 		},
-		move: function (loc) {
+		move: function (x, y) {
+			const loc = v(x, y);
 			this.erase();
 			v.assign(this, loc);
 			this.draw();
@@ -321,6 +322,11 @@
 				h: this.h
 			};
 		}
+	};
+
+	Cute.destroy = function (el) {
+		dispatch.removeEventListeners(el);
+		screen.remove(el);
 	};
 
 

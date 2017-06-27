@@ -4,12 +4,22 @@ Cute.context.webkitImageSmoothingEnabled = false;
 Cute.context.msImageSmoothingEnabled = false;
 Cute.context.imageSmoothingEnabled = false;
 
+const WIDTH = 800;
+const HEIGHT = 600;
+
 const Bunny = Cute({
 	draw: function (ctx) {
-		ctx.drawImage(document.getElementById('bunnunu'), 0, 0, 10, 13,
+		const sprite = document.getElementById('tomato');
+		ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
 					  0, 0, this.w, this.h);
+	},
+	state: {
+		Ready () {
+
+		}
 	}
 });
+
 
 const Tomato = Cute({
 	draw: function (ctx) {
@@ -19,14 +29,38 @@ const Tomato = Cute({
 	}
 });
 
-const tomat = Tomato({
-	x: 0,
-	y: 0,
-	w: 40,
-	h: 40,
-});
+function Foxes () {
+	const Fox = Cute({
+		methods: {
+			release: function (speed) {
+				this.move(Math.random() * WIDTH, -50);
+				this.Run(speed);
+			},
+			update: function () {
+				this.move(v(this).add(0, speed));
+				if (this.y > HEIGHT + 50) {
+					this.pool();
+				}
+			}
+		},
+		draw: function (ctx) {
+			const sprite = document.getElementById('fox');
+			ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
+						  0, 0, this.w, this.h);
+		},
+		state: {
+			Run: function (speed) {
+			},
+			Pool: function () {
+				foxPool.push(this);
+			}
+		}
+	});
 
-tomat.draw();
+	const foxes = [];
+	let base_speed = 10;
+	let num_foxes_unleashed = 0;
+}
 
 const bun = Bunny({
 	x: 10,
@@ -35,12 +69,6 @@ const bun = Bunny({
 	h: 39
 });
 
-const bun2 = Bunny({
-	x: 100,
-	y: 50,
-	w: 300,
-	h: 390
-});
+const foxes = Foxes();
 
 bun.draw();
-bun2.draw();
