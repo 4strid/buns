@@ -1,11 +1,13 @@
 const WIDTH = 800;
 const HEIGHT = 800;
 
+Cute.set('background_color', '#cdf9bd');
 Cute.attach(document.getElementsByTagName('body')[0], WIDTH, HEIGHT);
 Cute.context.mozImageSmoothingEnabled = false;
 Cute.context.webkitImageSmoothingEnabled = false;
 Cute.context.msImageSmoothingEnabled = false;
 Cute.context.imageSmoothingEnabled = false;
+
 
 const Bunny = Cute({
 	draw: function (ctx) {
@@ -17,7 +19,14 @@ const Bunny = Cute({
 		Ready: function () {
 			this.on('mousemove', function (evt) {
 				this.move(v(evt.canvasX - 40, evt.canvasY - 52));
+				const collisions = this.getIntersections();
+				for (coll of collisions) {
+					this.Eaten();
+				}
 			});
+		},
+		Eaten: function () {
+			console.log('oh no we got eaten');
 		}
 	}
 });
@@ -68,9 +77,12 @@ function Foxes () {
 		});
 		foxes.push(fox);
 	}
+	spawn_fox();
 	window.setInterval(spawn_fox, 200);
 
 }
+
+const foxes = new Foxes();
 
 const bun = Bunny({
 	x: 400,
@@ -79,10 +91,6 @@ const bun = Bunny({
 	h: 104 
 });
 
-bun.draw();
-
-const foxes = new Foxes();
-
 let last_time = null;
 function step(time) {
 	window.requestAnimationFrame(step);
@@ -90,6 +98,7 @@ function step(time) {
 	last_time = time;
 
 	foxes.update(time);
+	bun.draw();
 }
 window.requestAnimationFrame(step);
 

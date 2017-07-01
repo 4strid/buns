@@ -4,6 +4,10 @@
 	const canvas = document.createElement('canvas');
 	let ctx = canvas.getContext('2d');
 
+	const options = {
+		background_color: '#ffffff'
+	};
+
 	function Screen () {
 		const elems = [];
 
@@ -18,7 +22,9 @@
 				const collisions = [];
 				for (el of elems) {
 					if (r.intersect(r(q.screen, q.dimensions), r(el.screen, el.dimensions))) {
-						collisions.push(el);
+						if (q !== el) {
+							collisions.push(el);
+						}
 					}
 				}
 				return collisions;
@@ -33,7 +39,7 @@
 			queryRect: function (qr) {
 				const collisions = [];
 				for (el of elems) {
-					if (r.intersect(r(el.screen, el.dimensions), qr)) {
+					if (r.intersect(r(el.screen, el.dimensions), l(qr))) {
 						collisions.push(el);
 					}
 				}
@@ -304,7 +310,7 @@
 			this.draw();
 		},
 		erase: function () {
-			ctx.fillStyle = '#FFFFFF';
+			ctx.fillStyle = options.background_color;
 			ctx.fillRect(this.screen.x, this.screen.y, this.w, this.h);
 			const collisions = screen.getIntersections(this);
 			for (el of collisions) {
@@ -312,6 +318,9 @@
 					el.draw();
 				}
 			}
+		},
+		getIntersections: function () {
+			return screen.getIntersections(this);
 		},
 		get screen () {
 			return this.parent ? v(this).add(this.parent.screen) : v(this);
@@ -334,6 +343,12 @@
 		parentEl.appendChild(canvas);
 		canvas.width = width || parentEl.clientWidth;
 		canvas.height = height || parentEl.clientHeight;
+		ctx.fillStyle = options.background_color;
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+	};
+
+	Cute.set = function (prop, value) {
+		options[prop] = value;
 	};
 
 	//Object.assign(Cute, {
