@@ -81,7 +81,7 @@
 
 		function isLocal (evtype) {
 			return [
-				'click',
+				//'click',
 				'dblclick',
 				'mousedown',
 				'mouseout',
@@ -92,6 +92,7 @@
 
 		function isGlobal (evtype) {
 			return [
+				'click',
 				'blur',
 				'focus',
 				'keydown',
@@ -104,6 +105,7 @@
 
 		const localListeners = new Map();
 		const globalListeners = {
+			click: new Map(),
 			blur: new Map(),
 			focus: new Map(),
 			keydown: new Map(),
