@@ -29,6 +29,9 @@
 				}
 				return collisions;
 			},
+			intersects (q1, q2) {
+				return r.intersect(r(q1.screen, q1.dimensions), r(q2.screen, q2.dimensions));
+			},
 			queryPoint: function (q) {
 				for (el of elems) {
 					if (r.pointIntersect(r(el.screen, el.dimensions), q)) {
@@ -323,6 +326,9 @@
 		},
 		getIntersections: function () {
 			return screen.getIntersections(this);
+		},
+		intersects: function (q) {
+			return screen.intersects(this, q);
 		},
 		get screen () {
 			return this.parent ? v(this).add(this.parent.screen) : v(this);

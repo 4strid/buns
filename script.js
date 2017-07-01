@@ -15,17 +15,16 @@ const Bunny = Cute({
 		if (this.eaten){
 			sprite = document.getElementById('deadbun');
 		}
-		if (this.shouldDraw !== false) {
-			ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
-						  0, 0, this.w, this.h);
-		}
+		ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
+					  0, 0, this.w, this.h);
 	},
 	methods: {
 		update: function (time) {
 			if (!this.eaten) {
-				const collisions = this.getIntersections();
-				for (coll of collisions) {
-					this.Eaten();
+				for (let fox of foxes.foxes) {
+					if (this.intersects(fox)) {
+						this.Eaten();
+					}
 				}
 			}
 		}
@@ -34,7 +33,6 @@ const Bunny = Cute({
 		Ready: function () {
 			this.erase();
 			this.eaten = false;
-			this.shouldDraw = true;
 			this.on('mousemove', function (evt) {
 				this.move(v(evt.canvasX - 40, evt.canvasY - 52));
 			});
@@ -43,7 +41,7 @@ const Bunny = Cute({
 			this.eaten = true;
 			const lives_left = gameState.dead();
 			if (lives_left > 0) {
-				this.on("click", function(event){
+				this.on('click', function(event){
 					window.setTimeout(function () {
 						foxes.start();
 					}, 750);
@@ -52,7 +50,6 @@ const Bunny = Cute({
 				});
 			} else {
 				this.erase();
-				this.shouldDraw = false;
 			}
 		}
 	}
@@ -67,7 +64,7 @@ function Foxes () {
 		},
 		methods: {
 			update: function (time) {
-				this.move(v(this).add(0, this.speed));
+				this.move(v(this).add(0, this.speed * time / 16));
 			}
 		},
 		draw: function (ctx) {
@@ -81,15 +78,16 @@ function Foxes () {
 	let base_speed = 3;
 
 	const foxes = [];
+	this.foxes = foxes;
 
 	this.start = function (){
-		this.speed = 3;
+		base_speed = 3;
 		spawn_fox_interval = window.setInterval(spawn_fox, 200);
-	}
+	};
 
 	this.stop = function (){
 		window.clearInterval(spawn_fox_interval);
-	}
+	};
 
 	this.update = function (time) {
 		for (f of foxes) {
@@ -100,7 +98,7 @@ function Foxes () {
 				gameState.addPoints();
 			}
 		}
-	}
+	};
 
 	function spawn_fox () {
 		const start = Math.floor(Math.random()*10)*80+4;
@@ -133,7 +131,7 @@ function GameState() {
 		scoreBoard.innerHTML = "Score: "+score;
 		foxes.start();
 		bun.Ready();
-	}
+	};
 
 	
 	this.addPoints = function() {
@@ -141,7 +139,7 @@ function GameState() {
 			score ++;
 			scoreBoard.innerHTML = "Score: "+score;
 		}
-	}
+	};
 	this.dead = function() {
 		lives -= 1;
 		foxes.stop();
@@ -149,7 +147,7 @@ function GameState() {
 			button.className = "show-button";
 		}
 		return lives;
-	}
+	};
 }
 
 const gameState = new GameState();
@@ -170,8 +168,8 @@ function step(time) {
 	const elapsed = time - last_time;
 	last_time = time;
 
-	foxes.update(time);
-	bun.update(time);
+	foxes.update(elapsed);
+	bun.update(elapsed);
 	bun.draw();
 }
 window.requestAnimationFrame(step);
