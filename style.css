@@ -7,38 +7,68 @@ html, body {
 }
 
 img {
-	position: absolute;
-	margin-left: 10000px;
+	/*position: absolute;*/
+	/*margin-left: 10000px;*/
+	display: none;
 }
 
 #game {
+	position: relative;
 	width: 800px;
 	margin: 0 auto;
 }
 
 #score {
-	position: relative;
+	position: absolute;
 	left: 12px;
 	top: 550px;
 	z-index: 999;
 }
-
-canvas {
+#start {
+	left: 0;
+	right: 0;
+	top: 100px;
+	margin: 0 auto;
+	width: 500px;
+	text-align: center;
+	color: darksalmon;
+	z-index: 2;
 	position: absolute;
+}
+#start h1 {
+	margin-bottom: 0;
+	font-size: 120px;
+	color:forestgreen;
+}
+#over {
+	left: 0;
+	right:0;
+	top: 100px;
+	margin: 0 auto;
+	width: 500;
+    position: absolute;
+	z-index: 3;
+}
+#scores {
+	
+}
+canvas {
+	position: relative;
 	z-index: 1;
 }
 
-.hide-button {
+.hide {
 	display: none;
 }
 
-.show-button{
+.show-button {
 	position: absolute;
 	left: 0;
 	right: 0;
+	top: 0;
+	margin: 300px auto;
 	display: block;
 	width: 100px;
 	height: 50px;
-	margin: 300px auto;
 	z-index: 999;
 }

@@ -12,7 +12,7 @@ Cute.context.imageSmoothingEnabled = false;
 const Bunny = Cute({
 	draw: function (ctx) {
 		let sprite = document.getElementById('bunnunu');
-		if (this.eaten){
+		if (this.eaten) {
 			sprite = document.getElementById('deadbun');
 		}
 		ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
@@ -64,7 +64,9 @@ function Foxes () {
 		},
 		methods: {
 			update: function (time) {
-				this.move(v(this).add(0, this.speed * time / 16));
+				this.erase();
+				this.move_(v(this).add(0, this.speed * time / 16));
+				this.draw();
 			}
 		},
 		draw: function (ctx) {
@@ -74,23 +76,28 @@ function Foxes () {
 		}
 	});
 
-	let spawn_fox_interval;
-	let base_speed = 3;
+	let spawn_interval = 300;
+	let base_speed = 3.5;
+	let should_spawn = false;
 
 	const foxes = [];
 	this.foxes = foxes;
 
+	const spawnIntervals = [];
+
 	this.start = function (){
-		base_speed = 3;
-		spawn_fox_interval = window.setInterval(spawn_fox, 200);
+		base_speed = 3.5;
+		spawn_interval = 300;
+		should_spawn = true;
+		spawn_fox();
 	};
 
 	this.stop = function (){
-		window.clearInterval(spawn_fox_interval);
+		should_spawn = false;
 	};
 
 	this.update = function (time) {
-		for (f of foxes) {
+		for (let f of foxes) {
 			f.update(time);
 			if (f.y > HEIGHT + 80) {
 				Cute.destroy(f);
@@ -101,50 +108,94 @@ function Foxes () {
 	};
 
 	function spawn_fox () {
-		const start = Math.floor(Math.random()*10)*80+4;
-		base_speed += 0.01;
-		const fluctuation = Math.random()*1.5;
-		const fox = Fox({
-			x: start,
-			y: -80,
-			w: 72,
-			h: 80,
-			speed: base_speed+fluctuation 
-		});
-		foxes.push(fox);
+		if (should_spawn) {
+			const start = Math.floor(Math.random()*10)*80+8;
+			base_speed += 0.01;
+			const fluctuation = Math.random()*1.5;
+			const fox = Fox({
+				x: start,
+				y: -80,
+				w: 63,
+				h: 70,
+				speed: base_speed+fluctuation 
+			});
+			foxes.push(fox);
+			window.setTimeout(spawn_fox, spawn_interval);
+			spawn_interval -= 0.5;
+		}
 	}
-	spawn_fox();
 }
 
 function GameState() {
 	let lives = 3;
 	let score = 0;
 
-	const button = document.getElementById("restart");
+	const button = document.getElementById('restart');
 
-	const scoreBoard = document.getElementById("score");
+	const scoreBoard = document.getElementById('score');
 
 	button.onclick = function () {
-		button.className = "hide-button";
+		button.className = 'hide-button';
 		lives = 3;
 		score = 0;
-		scoreBoard.innerHTML = "Score: "+score;
+		scoreBoard.innerHTML = 'Score: '+ score;
 		foxes.start();
 		bun.Ready();
 	};
 
-	
+	const Life = Cute ({
+		draw: function (ctx) {
+			let sprite = document.getElementById('bunnunu');
+			ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
+						  0, 0, this.w, this.h);
+		}
+	});
+
+	const lifeSprites = [
+		Life({
+			x: WIDTH - 95,
+			y: HEIGHT - 45,
+			w: 30, 
+			h: 39
+		}),
+
+		Life({
+			x: WIDTH - 65,
+			y: HEIGHT - 45,
+			w: 30, 
+			h: 39
+		}),
+		
+		Life({
+			x: WIDTH - 35,
+			y: HEIGHT - 45,
+			w: 30, 
+			h: 39
+		})
+	];
+
+	this.drawlives = function () {
+		for (const life of lifeSprites) {
+			// erase the lives
+			life.erase();
+		}
+		// draw however many lives remain
+		for (let i = 0; i < lives; i++){
+			lifeSprites[i].draw();
+		}
+	};
+
 	this.addPoints = function() {
 		if (!bun.eaten) {
-			score ++;
-			scoreBoard.innerHTML = "Score: "+score;
+			score++;
+			scoreBoard.innerHTML = 'Score: '+ score;
 		}
 	};
 	this.dead = function() {
 		lives -= 1;
 		foxes.stop();
 		if (lives === 0) {
-			button.className = "show-button";
+			button.className = 'show-button';
 		}
 		return lives;
 	};
@@ -158,8 +209,8 @@ foxes.start();
 const bun = Bunny({
 	x: 400,
 	y: 400,
-	w: 80,
-	h: 104
+	w: 70,
+	h: 91 
 });
 
 let last_time = null;
@@ -167,10 +218,16 @@ function step(time) {
 	window.requestAnimationFrame(step);
 	const elapsed = time - last_time;
 	last_time = time;
+	if (elapsed > 25) {
+		console.log('slowed down! ' + elapsed);
+	}
 
 	foxes.update(elapsed);
 	bun.update(elapsed);
+	bun.erase();
 	bun.draw();
+
+	gameState.drawlives();
 }
 window.requestAnimationFrame(step);
 

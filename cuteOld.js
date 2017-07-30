@@ -16,7 +16,7 @@
 				elems.push(el);
 			},
 			remove: function (el) {
-				elems.splice(elems.indexOf(el));
+				elems.splice(elems.indexOf(el), 1);
 			},
 			getIntersections (q) {
 				const collisions = [];
@@ -314,9 +314,12 @@
 			v.assign(this, loc);
 			this.draw();
 		},
+		move_: function (x, y) {
+			v.assign(this, v(x, y));
+		},
 		erase: function () {
 			ctx.fillStyle = options.background_color;
-			ctx.fillRect(this.screen.x, this.screen.y, this.w, this.h);
+			ctx.fillRect(this.screen.x - 1, this.screen.y - 1, this.w + 2, this.h + 2);
 			const collisions = screen.getIntersections(this);
 			for (el of collisions) {
 				if (el !== this) {
