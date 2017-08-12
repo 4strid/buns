@@ -1,0 +1,10 @@
+goals
+
+//comment the whole thing
+fix the end screen so its centered and pretty and shows up only at end
+//finish score page
+backend
+
+long term goals
+
+refactor for good design

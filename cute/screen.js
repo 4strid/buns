@@ -4,10 +4,15 @@
 
 		Object.assign(this, {
 			add: function (el) {
-				elems.push(el);
+				if (el.w > 0 && el.h > 0) {
+					elems.push(el);
+				}
 			},
 			remove: function (el) {
-				elems.splice(elems.indexOf(el), 1);
+				const i = elems.indexOf(el);
+				if (i > -1) {
+					elems.splice(i, 1);
+				}
 			},
 			getIntersections (q) {
 				const collisions = [];
@@ -24,11 +29,13 @@
 				return r.intersect(r(q1.screen, q1.dimensions), r(q2.screen, q2.dimensions));
 			},
 			queryPoint: function (q) {
+				const collisions = [];
 				for (el of elems) {
 					if (r.pointIntersect(r(el.screen, el.dimensions), q)) {
-						return el;
+						collisions.push(el);
 					}
 				}
+				return collisions;
 			},
 			queryRect: function (qr) {
 				const collisions = [];

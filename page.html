@@ -11,37 +11,47 @@
 	<img src="deadbun.png" id="deadbun">
 	<img src="grass.png" id="grass">
 	<div id="game">
-		<div id="start" class="hide">
+		<div id="start" class="">
 			<h1>BUNS</h1>
 			<h2>Avoid the foxes or die!</h2>
 			<h3>Click anywhere to start...</h3>
 		</div>
-		<div id="over" class="h">
+		<div id="over" class="hide">
 			<h1>YOU ARE DEAD :(</h1>
-			<h2>High Scores</h2>
-			<table id="scores">
-				<tr>
-					<td>johnny</td>
-					<td>4089893467</td>
-				</tr>
-				<tr>
-					<td>sally</td>
-					<td>5325432897</td>
-				</tr>
-				<tr>
-					<td>li</td>
-					<td>80322897</td>
-				</tr>
-				<tr>
-					<td>mohammed</td>
-					<td>25432897</td>
-				</tr>
-				<tr>
-					<td>jesus</td>
-					<td>325432897</td>
-				</tr>
-			</table>
-			<button id="restart">Restart?</button>
+			<div>
+				<h3>Your score:</h3>
+				<h1 id="jumbo-score"> 1000 </h1>
+			</div>
+			<div>
+				<h2>High Scores</h2>
+				<table id="scores">
+					<tr>
+						<td>johnny</td>
+						<td>4089893467</td>
+					</tr>
+					<tr>
+						<td>sally</td>
+						<td>5325432897</td>
+					</tr>
+					<tr>
+						<td>li</td>
+						<td>80322897</td>
+					</tr>
+					<tr>
+						<td>mohammed</td>
+						<td>25432897</td>
+					</tr>
+					<tr>
+						<td>jesus</td>
+						<td>325432897</td>
+					</tr>
+				</table>
+			</div>
+			<form id="formy">
+				<input type="text" maxlength="12" placeholder="Your name">
+				<button type="submit">Glory is yours!</button>	
+			</form>
+			<button id="restart" class="">Restart?</button>
 		</div>
 		<div id="score"></div>
 	</div>

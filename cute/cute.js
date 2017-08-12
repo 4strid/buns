@@ -1,16 +1,15 @@
 (function () {
 	function noop () {}
 
+	const options = {
+		'background-color': '#ffffff'
+	};
+
 	const canvas = document.createElement('canvas');
 	let ctx = canvas.getContext('2d');
 
-	const options = {
-		background_color: '#ffffff'
-	};
-
-	const screen = new Screen();
-
-	const dispatch = new Dispatch(canvas, screen);
+	let dispatch;
+	let screen;
 
 	function prototypeFromPlan (plan, parent) {
 		const prototype = Object.create(parent);
@@ -27,15 +26,29 @@
 		return prototype;
 	}
 
-	function Cute (base, plan) {
-		if (arguments.length == 1) {
-			plan = base;
-			base = undefined;
-			var proto = Cute.prototype;
-		} else if (arguments.length == 2) {
-			var proto = base.prototype;
+	function argsAndParams (o, args, params) {
+		for (const p in params) {
+			if (args[p]) {
+				o[p] = args[p];
+			} else {
+				if (params[p].default) {
+					o[p] = params[p].default;
+				} else {
+					console.warn('Missing required argument ' + p);
+				}
+			}
 		}
-		const prototype = prototypeFromPlan(plan, proto);
+	}
+
+	function Cute (plan) {
+		//if (arguments.length == 1) {
+			//plan = base;
+			//base = undefined;
+			//var proto = Cute.prototype;
+		//} else if (arguments.length == 2) {
+			//var proto = base.prototype;
+		//}
+		const prototype = prototypeFromPlan(plan, Cute.prototype);
 
 		prototype.draw = function (op) {
 			ctx.save();
@@ -45,32 +58,20 @@
 		};
 
 		function constructor (args)	{
+			args = args || {};
 			const o = Object.create(prototype);
 			o.constructor = plan.constructor;
 
-			for (const p in plan.params) {
-				if (args[p]) {
-					// typecheck SNORE
-					o[p] = args[p];
-				} else {
-					if (plan.params[p].default) {
-						o[p] = plan.params[p].default;
-					} else {
-						console.warn('Missing required argument ' + p);
-					}
-				}
-			}
-
-			if (plan.fed) {
-				for (const k in plan.fed) {
-					o[k] = plan.fed[k];
-				}
-			}
-
-			Cute.constructor.call(o, args.x, args.y, args.w, args.h, args.context, args.parent);
-			if (base !== undefined) {
-				base.constructor.call(o);
-			}
+			argsAndParams(o, args, plan.params);
+			//if (plan.fed) {
+				//for (const k in plan.fed) {
+					//o[k] = plan.fed[k];
+				//}
+			//}
+			Cute.constructor.call(o, args, plan);
+			//if (base !== undefined) {
+				//base.constructor.call(o);
+			//}
 			o.constructor.call(o);
 			screen.add(o);
 			(o.Ready || noop).call(o);
@@ -81,16 +82,15 @@
 		constructor.constructor = plan.constructor;
 
 		return constructor;
-		
 	}
 
-	Cute.constructor = function (x, y, w, h, context, parent) {
+	Cute.constructor = function (args, plan) {
 		// make sure we got all the arguments
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
-		this.parent = parent;
+		this.x = args.x || plan.x || 0;
+		this.y = args.y || plan.y || 0;
+		this.w = args.w || plan.w || 0;
+		this.h = args.h || plan.h || 0;
+		this.parent = args.parent;
 	};
 
 	Cute.prototype = {
@@ -105,7 +105,7 @@
 			dispatch.removePersistentListener(this, evtype);
 		},
 		emit: function (evtype, evt) {
-			dispatch.emitEvent(this.parent, evtype, evt);
+			dispatch.emitEvent(this, evtype, evt);
 		},
 		move: function (x, y) {
 			const loc = v(x, y);
@@ -117,8 +117,9 @@
 			v.assign(this, v(x, y));
 		},
 		erase: function () {
-			ctx.fillStyle = options.background_color;
+			ctx.fillStyle = options['background-color'];
 			ctx.fillRect(this.screen.x - 1, this.screen.y - 1, this.w + 2, this.h + 2);
+			//ctx.fillRect(this.screen.x, this.screen.y, this.w, this.h);
 			const collisions = screen.getIntersections(this);
 			for (el of collisions) {
 				if (el !== this) {
@@ -132,6 +133,23 @@
 		intersects: function (q) {
 			return screen.intersects(this, q);
 		},
+		addChild: function (child, name) {
+			this.children = this.children || [];
+			child.parent = this;
+			//child.setParent(this);
+			this.children.push(child);
+			this.children[name] = child;
+			Object.defineProperty(this.children, name, {value: child});
+		},
+		addChildren: function (children, name) {
+			this.children = this.children || [];
+			for (const child of children) {
+				child.parent = this;
+				//child.setParent(this);
+			}
+			this.children = this.children.concat(children);
+			Object.defineProperty(this.children, name, {value: children});
+		},
 		get screen () {
 			return this.parent ? v(this).add(this.parent.screen) : v(this);
 		},
@@ -140,7 +158,92 @@
 				w: this.w,
 				h: this.h
 			};
+		},
+		destroy: function () {
+			if (this.children) {
+				for (child of this.children) {
+					child.destroy();
+				}
+				this.children = [];
+			}
+			Cute.destroy(this);
 		}
+	};
+
+	Cute.Sprite = function (plan) {
+		//if (arguments.length == 1) {
+			//plan = base;
+			//base = undefined;
+			//var proto = Cute.prototype;
+		//} else if (arguments.length == 2) {
+			//var proto = base.prototype;
+		//}
+		const prototype = prototypeFromPlan(plan, Cute.prototype);
+
+		function spriteDraw (ctx) {
+			const sprite = this.sprite;
+			const src = v(
+				sprite.currentFrame * sprite.width,
+				sprite.currentAnimation * sprite.height
+			);
+			if (sprite.image.complete) {
+				ctx.drawImage(sprite.image, src.x, src.y, sprite.width, sprite.height,
+							  0, 0, this.w, this.h);
+			} else {
+				setTimeout(() => {
+					spriteDraw.call(this, ctx);
+				}, 0);
+			}
+		}
+
+		prototype.draw = function (op) {
+			ctx.save();
+			ctx.translate(this.screen.x, this.screen.y);
+			spriteDraw.call(this, ctx);
+			ctx.restore();
+		};
+
+		prototype.animate = function (anim, frame) {
+			this.sprite.currentAnimation = anim;
+			this.sprite.currentFrame = frame;
+			this.draw();
+		};
+
+		const image = new Image();
+		image.src = plan.imagesrc;
+
+		function constructor (args)	{
+			args = args || {};
+			const o = Object.create(prototype);
+			o.constructor = plan.constructor;
+
+			argsAndParams(o, args, plan.params);
+			//if (plan.fed) {
+				//for (const k in plan.fed) {
+					//o[k] = plan.fed[k];
+				//}
+			//}
+			Cute.constructor.call(o, args, plan);
+			//if (base !== undefined) {
+				//base.constructor.call(o);
+			//}
+			o.sprite = {
+				image: image,
+				currentAnimation: 0,
+				currentFrame: 0,
+				width: plan.width,
+				height: plan.height
+			};
+			o.constructor.call(o);
+			screen.add(o);
+			(o.Ready || noop).call(o);
+			return o;
+		}
+		// attach stuff to return
+		constructor.prototype = prototype;
+		constructor.constructor = plan.constructor;
+
+		return constructor;
 	};
 
 	Cute.HTML = function (plan) {
@@ -155,23 +258,12 @@
 			o.constructor = plan.constructor || noop;
 			const el = document.importNode(template.content.firstChild, true);
 			o.el = el;
-			Cute.HTML.Element.call(o, el, args.x, args.y, args.w, args.h);
-			Cute.constructor.call(o, args.x, args.y, args.w, args.h, args.context, args.parent);
 
-			for (const p in plan.params) {
-				if (args[p]) {
-					// typecheck SNORE
-					o[p] = args[p];
-				} else {
-					if (plan.params[p].default) {
-						o[p] = plan.params[p].default;
-					} else {
-						console.warn('Missing required argument ' + p);
-					}
-				}
-			}
+			Cute.constructor.call(o, args, plan);
+			Cute.HTML.Element.call(o, el);
 
-			Cute.constructor.call(o, args.x, args.y, args.w, args.h, args.context, args.parent);
+			argsAndParams(o, args, plan.params);
+
 			o.constructor.call(o);
 			screen.add(o);
 			(o.Ready || noop).call(o);
@@ -183,13 +275,13 @@
 		return constructor;
 	};
 
-	Cute.HTML.Element = function (el, x, y, w, h) {
-		this.move(x, y);
-		if (w) {
-			el.style.width = w.toString() + 'px';
+	Cute.HTML.Element = function (el) {
+		this.move(this.x, this.y);
+		if (this.w) {
+			el.style.width = this.w.toString() + 'px';
 		}
-		if (h) {
-			el.style.height = h.toString() + 'px';
+		if (this.h) {
+			el.style.height = this.h.toString() + 'px';
 		}
 		el.style.position = 'absolute';
 		el.style['z-index'] = 999;
@@ -218,7 +310,7 @@
 		},
 		destroy: function () {
 			parentEl.removeChild(this.el);
-			dispatch.removeDomEventListeners(this);
+			dispatch.removeEventListeners(this);
 			screen.remove(this);
 		}
 	});
@@ -259,6 +351,12 @@
 		screen.remove(el);
 	};
 
+	Cute.suppressContextMenu = function () {
+		parentEl.addEventListener('contextmenu', function (evt) {
+			evt.preventDefault();
+		});
+	};
+
 
 	let parentEl = null;
 	Cute.attach = function (parent, width, height) {
@@ -266,8 +364,13 @@
 		parentEl.appendChild(canvas);
 		canvas.width = width || parentEl.clientWidth;
 		canvas.height = height || parentEl.clientHeight;
-		ctx.fillStyle = options.background_color;
+		ctx.fillStyle = options['background-color'];
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+		screen = new Screen();
+
+		dispatch = new Dispatch(canvas, screen, parentEl);
+
 	};
 
 	Cute.set = function (prop, value) {
