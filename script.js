@@ -349,4 +349,5 @@ function step(time) {
 
 	gameState.drawlives();
 }
+// start the program
 window.requestAnimationFrame(step);
